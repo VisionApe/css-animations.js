@@ -1,19 +1,19 @@
-(function() {
+(function () {
 
     // Utility
 
     function findKeyframeRules(styles, func) {
         var rules = styles.cssRules || styles.rules || [];
 
-        for(var i=0; i<rules.length; i++) {
+        for (var i = 0; i < rules.length; i++) {
             var rule = rules[i];
 
-            if(rule.type == CSSRule.IMPORT_RULE) {
+            if (rule.type == CSSRule.IMPORT_RULE) {
                 findKeyframeRules(rule.styleSheet, func);
             }
-            else if(rule.type === CSSRule.KEYFRAMES_RULE ||
-                    rule.type === CSSRule.MOZ_KEYFRAMES_RULE ||
-                    rule.type === CSSRule.WEBKIT_KEYFRAMES_RULE) {
+            else if (rule.type === CSSRule.KEYFRAMES_RULE ||
+                rule.type === CSSRule.MOZ_KEYFRAMES_RULE ||
+                rule.type === CSSRule.WEBKIT_KEYFRAMES_RULE) {
                 func(rule, styles, i);
             }
         }
@@ -29,10 +29,10 @@
         // Extract the CSS as an object
         var rules = r.style.cssText.split(';');
 
-        for(var i=0; i<rules.length; i++) {
+        for (var i = 0; i < rules.length; i++) {
             var parts = rules[i].split(':');
 
-            if(parts.length == 2) {
+            if (parts.length == 2) {
                 var key = parts[0].replace(/^\s+|\s+$/g, '');
                 var value = parts[1].replace(/^\s+|\s+$/g, '');
 
@@ -51,14 +51,14 @@
         this.initKeyframes();
     };
 
-    KeyframeAnimation.prototype.initKeyframes = function() {
+    KeyframeAnimation.prototype.initKeyframes = function () {
         this.keyframes = [];
         this.keytexts = [];
         this.keyframeHash = {};
 
         var rules = this.original;
 
-        for(var i=0; i<rules.cssRules.length; i++) {
+        for (var i = 0; i < rules.cssRules.length; i++) {
             var rule = new KeyframeRule(rules.cssRules[i]);
             this.keyframes.push(rule);
             this.keytexts.push(rule.keyText);
@@ -66,18 +66,50 @@
         }
     };
 
-    KeyframeAnimation.prototype.getKeyframeTexts = function() {
+    KeyframeAnimation.prototype.getKeyframeTexts = function () {
         return this.keytexts;
     };
 
-    KeyframeAnimation.prototype.getKeyframe = function(text) {
+    KeyframeAnimation.prototype.getKeyframe = function (text) {
         return this.keyframeHash[text];
     };
 
-    KeyframeAnimation.prototype.setKeyframe = function(text, css) {
-        var cssRule = text+" {";
-        for(var k in css) {
-            cssRule += k + ':' + css[k] + ';';
+    KeyframeAnimation.prototype.fixStyle=function(name,value){
+        var style=name + ':' + value + ';';
+        switch (name){
+
+            case 'transform':
+                style+='-webkit-'+name + ':' + value + ';';
+                break;
+            case 'transform-origin':
+                style+='-webkit-'+name + ':' + value + ';';
+                break;
+            case 'transform-style':
+                style+='-webkit-'+name + ':' + value + ';';
+                break;
+            case 'perspective':
+                style+='-webkit-'+name + ':' + value + ';';
+                break;
+            case 'perspective-origin':
+                style+='-webkit-'+name + ':' + value + ';';
+                break;
+            case 'backface-visibility':
+                style+='-webkit-'+name + ':' + value + ';';
+                break;
+
+        }
+
+
+
+        return style;
+    };
+
+
+    KeyframeAnimation.prototype.setKeyframe = function (text, css) {
+        var self=this;
+        var cssRule = text + " {";
+        for (var k in css) {
+            cssRule += self.fixStyle(k,css[k]) ;
         }
         cssRule += "}";
 
@@ -87,7 +119,7 @@
         // are simply replaced. Need to look into that more.
         // 
         // https://github.com/jlongster/css-animations.js/issues/4
-        if('appendRule' in this.original) {
+        if ('appendRule' in this.original) {
             this.original.appendRule(cssRule);
         }
         else {
@@ -95,48 +127,49 @@
         }
 
         this.initKeyframes();
-        
+
         // allow for chaining for ease of creation.
         return this;
     };
 
-    KeyframeAnimation.prototype.setKeyframes = function(obj) {
-        for(var k in obj) {
+    KeyframeAnimation.prototype.setKeyframes = function (obj) {
+        for (var k in obj) {
             this.setKeyframe(k, obj[k]);
         }
     };
 
-    KeyframeAnimation.prototype.clear = function() {
-        for(var i=0; i<this.keyframes.length; i++) {
+    KeyframeAnimation.prototype.clear = function () {
+        for (var i = 0; i < this.keyframes.length; i++) {
             this.original.deleteRule(this.keyframes[i].keyText);
         }
     };
 
     function Animations() {
         this.animations = {};
+        this.id = 0;
 
         var styles = document.styleSheets;
         var anims = this.animations;
 
-        for(var i=0; i<styles.length; i++) {
+        for (var i = 0; i < styles.length; i++) {
             try {
-                findKeyframeRules(styles[i], function(rule) {
+                findKeyframeRules(styles[i], function (rule) {
                     anims[rule.name] = new KeyframeAnimation(rule);
                 });
             }
-            catch(e) {
+            catch (e) {
                 // Trying to interrogate a stylesheet from another
                 // domain will throw a security error
             }
         }
     }
 
-    Animations.prototype.get = function(name) {
+    Animations.prototype.get = function (name) {
         return this.animations[name];
     };
 
-    Animations.prototype.getDynamicSheet = function() {
-        if(!this.dynamicSheet) {
+    Animations.prototype.getDynamicSheet = function () {
+        if (!this.dynamicSheet) {
             var style = document.createElement('style');
             style.rel = 'stylesheet';
             style.type = 'text/css';
@@ -147,28 +180,29 @@
         return this.dynamicSheet;
     };
 
-    Animations.prototype.create = function(name, frames) {
+    Animations.prototype.create = function (name, frames) {
         var styles = this.getDynamicSheet();
 
         // frames can also be passed as the first parameter
-        if(typeof name === 'object') {
+        if (typeof name === 'object') {
             frames = name;
             name = null;
         }
 
-        if(!name) {
-            name = 'anim' + Math.floor(Math.random() * 100000);
+        if (!name) {
+            this.id++;
+            name = 'css_animation_' + this.id;
         }
 
         // Append a empty animation to the end of the stylesheet
         try {
             var idx = styles.insertRule('@keyframes ' + name + '{}',
-                                        styles.cssRules.length);
+                styles.cssRules.length);
         }
-        catch(e) {
-            if(e.name == 'SYNTAX_ERR' || e.name == 'SyntaxError') {
+        catch (e) {
+            if (e.name == 'SYNTAX_ERR' || e.name == 'SyntaxError') {
                 idx = styles.insertRule('@-webkit-keyframes ' + name + '{}',
-                                        styles.cssRules.length);
+                    styles.cssRules.length);
             }
             else {
                 throw e;
@@ -178,34 +212,100 @@
         var anim = new KeyframeAnimation(styles.cssRules[idx]);
         this.animations[name] = anim;
 
-        if(frames) {
+        if (frames) {
             anim.setKeyframes(frames);
         }
 
         return anim;
     };
 
-    Animations.prototype.remove = function(name) {
+    Animations.prototype.remove = function (name) {
         var styles = this.getDynamicSheet();
         name = name instanceof KeyframeAnimation ? name.name : name;
 
         this.animations[name] = null;
 
         try {
-            findKeyframeRules(styles, function(rule, styles, i) {
-                if(rule.name == name) {
+            findKeyframeRules(styles, function (rule, styles, i) {
+                if (rule.name == name) {
                     styles.deleteRule(i);
                 }
             });
         }
-        catch(e) {
+        catch (e) {
             // Trying to interrogate a stylesheet from another
             // domain will throw a security error
         }
     };
+    Animations.prototype.addAnimationToID = function (id, option) {
+       var ele=typeof(id) =='string'?document.getElementById(id):id;
+        ele.style.animationName = option.name;
 
-    if(typeof define == 'function' && define.amd) {
-        define(function() { return new Animations(); });
+
+        function setCss(dom, name, value) {
+            dom.style['-webkit-' + name] = value;
+            dom.style[name] = value;
+
+        }
+
+
+
+        for (var prop in option) {
+            if (option.hasOwnProperty( prop)) {
+
+                switch (prop) {
+                    case "name":
+                        setCss(ele, "animation-name", option[prop]);
+                        break;
+                    case "duration":
+                        setCss(ele, "animation-duration", option[prop]);
+                        break;
+                    case "func":
+                        setCss(ele, "animation-timing-function", option[prop]);
+                        break;
+                    case "delay":
+                        setCss(ele, "animation-delay", option[prop]);
+                        break;
+                    case "count":
+                        setCss(ele, "animation-iteration-count", option[prop]);
+                        break;
+                    case "direction":
+                        setCss(ele, "animation-direction", option[prop]);
+                        break;
+                    case "state":
+                        setCss(ele, "animation-play-state", option[prop]);
+                        break;
+                    case "transform-origin":
+                        setCss(ele, "transform-origin", option[prop]);
+                        break;
+                    case 'transform':
+                        setCss(ele, "transform", option[prop]);
+                        break;
+                    case 'transform-style':
+                        setCss(ele, "transform-style", option[prop]);
+                        break;
+                    case 'perspective':
+                        setCss(ele, "perspective", option[prop]);
+                        break;
+                    case 'perspective-origin':
+                        setCss(ele, "perspective-origin", option[prop]);
+                        break;
+                    case 'backface-visibility':
+                        setCss(ele, "backface-visibility", option[prop]);
+                        break;
+                }
+
+
+            }
+        }
+
+
+    };
+
+    if (typeof define == 'function' && define.amd) {
+        define(function () {
+            return new Animations();
+        });
     }
     else {
         window.CSSAnimations = new Animations();

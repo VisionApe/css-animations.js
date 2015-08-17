@@ -1,46 +1,88 @@
 <!DOCTYPE html>
 <html>
-  <head></head>
-  <body>
-    <div id="foo">hello</div>
-    <div id="bar">hello</div>
+<head>
+    <meta name="format-detection" content="telephone=no">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <style>
 
-    <script src="../css-animations.js"></script>
-    <script>
-      // Creating anonymous with keyframes
-      var anim = CSSAnimations.create({
-          '0%': {
-              'background-color': '#2299aa'
-          },
-          '100%': {
-              'background-color': '#000000',
-              'color': 'white'
-          }
-      });
+        div {
+            height: 50px;
+            font-size: 50px;
+            padding: 10px;
+            text-align: center;
+        }
+    </style>
 
-      // Creating by name
-      var anim2 = CSSAnimations.create('anim2', {
-          '0%': {
-              'background-color': '#aa9922'
-          },
-          '100%': {
-              'background-color': '#333333',
-              'color': 'white'
-          }
-      });
+</head>
+<body>
+<div id="foo">hello</div>
+<div id="bar">hello</div>
 
-      var foo = document.getElementById('foo');
-      var bar = document.getElementById('bar');
-      foo.style.animationName = anim.name;
-      foo.style.animationDuration = '5s';
-      bar.style.animationName = anim2.name;
-      bar.style.animationDuration = '5s';
+<script src="../css-animations.js"></script>
+<script>
+    // Creating anonymous with keyframes
+    var anim = CSSAnimations.create({
+        '0%': {
+            'background-color': '#2299aa',
+            'color': '#000'
+        },
+        '30%': {
+            'background-color': '#000000',
+            'color': 'blue'
+        },
+        '60%': {
+            'background-color': '#ff0000',
+            'color': 'green'
+        },
+        '80%': {
+            'background-color': '#00ff0f',
+            'color': '#fff'
+        },
+        '100%': {
+            'background-color': '#2299aa',
+            'color': '#000'
+        }
+    });
 
-      // webkit (all other browsers are unprefixed, I think)
-      foo.style.webkitAnimationName = anim.name;
-      foo.style.webkitAnimationDuration = '5s';
-      bar.style.webkitAnimationName = anim2.name;
-      bar.style.webkitAnimationDuration = '5s';
-    </script>
-  </body>
+    // Creating by name
+    var anim2 = CSSAnimations.create('anim2', {
+        '0%': {
+            'background-color': '#aa9922',
+            transform: "rotate(0deg)",
+            //'transform-origin':"0% 50%"
+
+
+
+        },
+        '50%': {
+            'background-color': '#333333',
+            transform: "rotate(180deg)"
+
+        },
+        '100%': {
+            'background-color': '#aa9922',
+            transform: "rotate(360deg)"
+           // 'transform-origin':"100% 50%"
+        }
+    });
+
+
+    CSSAnimations.addAnimationToID("foo", {name: anim.name, duration: "5s", count:'infinite' });
+    CSSAnimations.addAnimationToID('bar', {name: anim2.name, duration: "2s",func:"linear",count:'infinite','transform-origin':"0% 50%"});
+
+    //      foo.style.animationName = anim.name;
+    //      foo.style.animationDuration = '5s';
+    //      bar.style.animationName = anim2.name;
+    //      bar.style.animationDuration = '5s';
+    //
+    //      // webkit (all other browsers are unprefixed, I think)
+    //      foo.style.webkitAnimationName = anim.name;
+    //      foo.style.webkitAnimationDuration = '5s';
+    //      bar.style.webkitAnimationName = anim2.name;
+    //      bar.style.webkitAnimationDuration = '5s';
+</script>
+</body>
 </html>
