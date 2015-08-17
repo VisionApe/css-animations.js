@@ -1,4 +1,20 @@
-(function () {
+/*
+ * Author: Alex Gibson
+ * https://github.com/alexgibson/shake.js
+ * License: MIT license
+ */
+
+(function(global, factory) {
+    if (typeof define === 'function' && define.amd) {
+        define(function() {
+            return factory(global, global.document);
+        });
+    } else if (typeof module !== 'undefined' && module.exports) {
+        module.exports = factory(global, global.document);
+    } else {
+       global.CSSAnimations = factory(global, global.document);
+    }
+} (typeof window !== 'undefined' ? window : this, function (window, document) {
 
     // Utility
 
@@ -117,7 +133,7 @@
         // Browsers also vary in the semantics of this, whether or not the new
         // rules are merged in with previous ones at the same keyframe or if they
         // are simply replaced. Need to look into that more.
-        // 
+        //
         // https://github.com/jlongster/css-animations.js/issues/4
         if ('appendRule' in this.original) {
             this.original.appendRule(cssRule);
@@ -302,12 +318,5 @@
 
     };
 
-    if (typeof define == 'function' && define.amd) {
-        define(function () {
-            return new Animations();
-        });
-    }
-    else {
-        window.CSSAnimations = new Animations();
-    }
-})();
+  return window.CSSAnimations= new Animations;
+}));
